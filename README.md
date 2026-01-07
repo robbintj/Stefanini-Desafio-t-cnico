@@ -10,6 +10,14 @@
 
 Sistema completo de gerenciamento de tarefas desenvolvido como parte do **Desafio Técnico Stefanini**. A aplicação permite criar, listar, editar e excluir tarefas, seguindo as melhores práticas de desenvolvimento com **Clean Code**, **Clean Architecture** e **SOLID**.
 
+<img width="406" height="682" alt="Captura de Tela 2026-01-07 às 02 37 16" src="https://github.com/user-attachments/assets/6c8c51b2-7af3-4d2a-ac6e-821121d72581" />
+-----
+<img width="948" height="737" alt="Captura de Tela 2026-01-07 às 02 37 42" src="https://github.com/user-attachments/assets/7672c058-0432-41e7-9f9c-39db07f400a3" />
+-----
+<img width="904" height="740" alt="Captura de Tela 2026-01-07 às 02 38 02" src="https://github.com/user-attachments/assets/28807d22-9853-4497-8c3b-74448df487ba" />
+
+---
+
 ### 🎯 Funcionalidades
 
 - ✅ Criar novas tarefas com título, descrição e status
