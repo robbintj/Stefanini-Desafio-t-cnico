@@ -37,12 +37,14 @@ jobs:
       run: |
         cd backend
         mvn jacoco:report
+      continue-on-error: true
 
     - name: Upload do relatório de cobertura
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: backend/target/site/jacoco/
+      if: always()
 
   # Job para testar o frontend
   frontend-build-and-test:
