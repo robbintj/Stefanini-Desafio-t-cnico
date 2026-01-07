@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TarefaService } from './services/tarefa.service';
@@ -29,7 +29,10 @@ export class AppComponent implements OnInit {
   filtroStatus = signal<string>('TODAS');
   tarefaEditando = signal<Tarefa | null>(null);
   mensagemSucesso = signal<string>('');
+  mensagemAviso = signal<string>('');
   mensagemErro = signal<string>('');
+  tarefaParaDeletar = signal<number | null>(null);
+  private timeoutId: any = null;
 
   // Computed
   modoEdicao = computed(() => this.tarefaEditando() !== null);
@@ -60,7 +63,6 @@ export class AppComponent implements OnInit {
       this.tarefaService.listarTodas().subscribe({
         next: (tarefas) => {
           this.tarefas.set(tarefas);
-          this.limparMensagens();
         },
         error: (erro) => this.exibirErro('Erro ao carregar tarefas: ' + erro.message)
       });
@@ -68,7 +70,6 @@ export class AppComponent implements OnInit {
       this.tarefaService.listarPorStatus(this.filtroStatus() as StatusTarefa).subscribe({
         next: (tarefas) => {
           this.tarefas.set(tarefas);
-          this.limparMensagens();
         },
         error: (erro) => this.exibirErro('Erro ao filtrar tarefas: ' + erro.message)
       });
@@ -83,13 +84,19 @@ export class AppComponent implements OnInit {
       return;
     }
 
+    console.log('Criando tarefa...', this.novaTarefa);
     this.tarefaService.criar(this.novaTarefa).subscribe({
       next: (tarefa) => {
+        console.log('Tarefa criada com sucesso:', tarefa);
         this.exibirSucesso('Tarefa criada com sucesso!');
+        console.log('Mensagem de sucesso definida:', this.mensagemSucesso());
         this.limparFormulario();
         this.carregarTarefas();
       },
-      error: (erro) => this.exibirErro('Erro ao criar tarefa: ' + erro.message)
+      error: (erro) => {
+        console.error('Erro ao criar tarefa:', erro);
+        this.exibirErro('Erro ao criar tarefa: ' + erro.message);
+      }
     });
   }
 
@@ -116,13 +123,19 @@ export class AppComponent implements OnInit {
       status: tarefa.status
     };
 
+    console.log('Atualizando tarefa...', tarefa.id, tarefaUpdate);
     this.tarefaService.atualizar(tarefa.id, tarefaUpdate).subscribe({
       next: (tarefa) => {
-        this.exibirSucesso('Tarefa atualizada com sucesso!');
+        console.log('Tarefa atualizada com sucesso:', tarefa);
+        this.exibirAviso('Tarefa atualizada com sucesso!');
+        console.log('Mensagem de aviso definida:', this.mensagemAviso());
         this.cancelarEdicao();
         this.carregarTarefas();
       },
-      error: (erro) => this.exibirErro('Erro ao atualizar tarefa: ' + erro.message)
+      error: (erro) => {
+        console.error('Erro ao atualizar tarefa:', erro);
+        this.exibirErro('Erro ao atualizar tarefa: ' + erro.message);
+      }
     });
   }
   /**
@@ -130,24 +143,48 @@ export class AppComponent implements OnInit {
    */
   cancelarEdicao(): void {
     this.tarefaEditando.set(null);
-    this.limparFormulario();
+    this.limparFormularioEdicao();
+  }
+
+  /**
+   * Limpa apenas o formulário de edição sem afetar mensagens.
+   */
+  limparFormularioEdicao(): void {
+    // Não chama limparFormulario() para não limpar as mensagens de sucesso/erro
   }
 
   /**
    * Deleta uma tarefa.
    */
   deletarTarefa(id: number): void {
-    if (!confirm('Tem certeza que deseja excluir esta tarefa?')) {
-      return;
-    }
+    this.tarefaParaDeletar.set(id);
+  }
+
+  /**
+   * Confirma a exclusão da tarefa.
+   */
+  confirmarDelecao(): void {
+    const id = this.tarefaParaDeletar();
+    if (!id) return;
 
     this.tarefaService.deletar(id).subscribe({
       next: () => {
         this.exibirSucesso('Tarefa excluída com sucesso!');
+        this.tarefaParaDeletar.set(null);
         this.carregarTarefas();
       },
-      error: (erro) => this.exibirErro('Erro ao excluir tarefa: ' + erro.message)
+      error: (erro) => {
+        this.exibirErro('Erro ao excluir tarefa: ' + erro.message);
+        this.tarefaParaDeletar.set(null);
+      }
     });
+  }
+
+  /**
+   * Cancela a exclusão da tarefa.
+   */
+  cancelarDelecao(): void {
+    this.tarefaParaDeletar.set(null);
   }
 
   /**
@@ -200,25 +237,93 @@ export class AppComponent implements OnInit {
    * Exibe mensagem de sucesso.
    */
   exibirSucesso(mensagem: string): void {
+    console.log('exibirSucesso chamado com:', mensagem);
+    
+    // Limpar timeout anterior se existir
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+    }
+    
     this.mensagemSucesso.set(mensagem);
+    this.mensagemAviso.set('');
     this.mensagemErro.set('');
-    setTimeout(() => this.mensagemSucesso.set(''), 5000);
+    this.tarefaParaDeletar.set(null);
+    
+    console.log('Estado após set:', {
+      sucesso: this.mensagemSucesso(),
+      aviso: this.mensagemAviso(),
+      erro: this.mensagemErro(),
+      deletar: this.tarefaParaDeletar()
+    });
+    
+    this.timeoutId = setTimeout(() => {
+      console.log('Limpando mensagem de sucesso após 8s');
+      this.mensagemSucesso.set('');
+      this.timeoutId = null;
+    }, 8000);
+  }
+
+  /**
+   * Exibe mensagem de aviso (amarelo).
+   */
+  exibirAviso(mensagem: string): void {
+    console.log('exibirAviso chamado com:', mensagem);
+    
+    // Limpar timeout anterior se existir
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+    }
+    
+    this.mensagemAviso.set(mensagem);
+    this.mensagemSucesso.set('');
+    this.mensagemErro.set('');
+    this.tarefaParaDeletar.set(null);
+    
+    console.log('Estado após set:', {
+      sucesso: this.mensagemSucesso(),
+      aviso: this.mensagemAviso(),
+      erro: this.mensagemErro(),
+      deletar: this.tarefaParaDeletar()
+    });
+    
+    this.timeoutId = setTimeout(() => {
+      console.log('Limpando mensagem de aviso após 8s');
+      this.mensagemAviso.set('');
+      this.timeoutId = null;
+    }, 8000);
   }
 
   /**
    * Exibe mensagem de erro.
    */
   exibirErro(mensagem: string): void {
+    // Limpar timeout anterior se existir
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+    }
+    
     this.mensagemErro.set(mensagem);
     this.mensagemSucesso.set('');
-    setTimeout(() => this.mensagemErro.set(''), 5000);
+    this.mensagemAviso.set('');
+    this.tarefaParaDeletar.set(null);
+    
+    this.timeoutId = setTimeout(() => {
+      this.mensagemErro.set('');
+      this.timeoutId = null;
+    }, 8000);
   }
 
   /**
    * Limpa todas as mensagens.
    */
   limparMensagens(): void {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+      this.timeoutId = null;
+    }
     this.mensagemSucesso.set('');
+    this.mensagemAviso.set('');
     this.mensagemErro.set('');
+    this.tarefaParaDeletar.set(null);
   }
 }
