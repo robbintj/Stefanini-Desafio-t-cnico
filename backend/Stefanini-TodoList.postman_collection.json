@@ -1,0 +1,328 @@
+{
+  "info": {
+    "name": "Stefanini Todo List API",
+    "description": "Collection completa para testar a API de gerenciamento de tarefas",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Tarefas",
+      "item": [
+        {
+          "name": "Listar Todas as Tarefas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tarefas",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas"]
+            },
+            "description": "Retorna lista com todas as tarefas cadastradas, ordenadas por data de criação (mais recentes primeiro)"
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Tarefa por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tarefas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas", "1"]
+            },
+            "description": "Busca uma tarefa específica pelo ID. Retorna 404 se não encontrada."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Tarefas por Status - PENDENTE",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tarefas/status/PENDENTE",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas", "status", "PENDENTE"]
+            },
+            "description": "Lista todas as tarefas com status PENDENTE"
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Tarefas por Status - EM_ANDAMENTO",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tarefas/status/EM_ANDAMENTO",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas", "status", "EM_ANDAMENTO"]
+            },
+            "description": "Lista todas as tarefas com status EM_ANDAMENTO"
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Tarefas por Status - CONCLUIDA",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tarefas/status/CONCLUIDA",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas", "status", "CONCLUIDA"]
+            },
+            "description": "Lista todas as tarefas com status CONCLUIDA"
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Nova Tarefa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Implementar autenticação\",\n  \"descricao\": \"Adicionar Spring Security com JWT\",\n  \"status\": \"PENDENTE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tarefas",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas"]
+            },
+            "description": "Cria uma nova tarefa. Título é obrigatório (3-100 caracteres). Status padrão é PENDENTE se não informado."
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Tarefa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Implementar autenticação - Atualizado\",\n  \"descricao\": \"Adicionar Spring Security com JWT e OAuth2\",\n  \"status\": \"EM_ANDAMENTO\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tarefas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas", "1"]
+            },
+            "description": "Atualiza uma tarefa existente. Todos os campos são obrigatórios. Retorna 404 se tarefa não encontrada."
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Tarefa",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tarefas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas", "1"]
+            },
+            "description": "Deleta uma tarefa pelo ID. Retorna 204 (No Content) em caso de sucesso, 404 se não encontrada."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints para gerenciamento de tarefas (CRUD completo)"
+    },
+    {
+      "name": "Exemplos de Validação",
+      "item": [
+        {
+          "name": "Erro - Título vazio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"\",\n  \"descricao\": \"Teste de validação\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tarefas",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas"]
+            },
+            "description": "Teste de validação: título vazio deve retornar erro 400"
+          },
+          "response": []
+        },
+        {
+          "name": "Erro - Título muito curto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"AB\",\n  \"descricao\": \"Teste de validação\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tarefas",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas"]
+            },
+            "description": "Teste de validação: título com menos de 3 caracteres deve retornar erro 400"
+          },
+          "response": []
+        },
+        {
+          "name": "Erro - Status inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Tarefa de teste\",\n  \"descricao\": \"Teste de validação\",\n  \"status\": \"INVALIDO\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tarefas",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas"]
+            },
+            "description": "Teste de validação: status inválido deve retornar erro 400"
+          },
+          "response": []
+        },
+        {
+          "name": "Erro - Tarefa não encontrada",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tarefas/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas", "9999"]
+            },
+            "description": "Teste de erro 404: buscar tarefa inexistente"
+          },
+          "response": []
+        }
+      ],
+      "description": "Exemplos de requisições que geram erros de validação para testar o sistema de exceções"
+    },
+    {
+      "name": "Cenários Completos",
+      "item": [
+        {
+          "name": "Cenário 1: Criar tarefa PENDENTE",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Estudar Java 21\",\n  \"descricao\": \"Aprender sobre Virtual Threads e Pattern Matching\",\n  \"status\": \"PENDENTE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tarefas",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cenário 2: Atualizar para EM_ANDAMENTO",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Estudar Java 21\",\n  \"descricao\": \"Aprender sobre Virtual Threads e Pattern Matching - Em progresso\",\n  \"status\": \"EM_ANDAMENTO\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tarefas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cenário 3: Concluir tarefa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Estudar Java 21\",\n  \"descricao\": \"Aprender sobre Virtual Threads e Pattern Matching - Concluído!\",\n  \"status\": \"CONCLUIDA\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tarefas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cenário 4: Listar apenas concluídas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tarefas/status/CONCLUIDA",
+              "host": ["{{baseUrl}}"],
+              "path": ["tarefas", "status", "CONCLUIDA"]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Cenários de uso completos do início ao fim"
+    }
+  ]
+}
+

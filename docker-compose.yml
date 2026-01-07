@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # SQL Server
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: todolist-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=SuaSenha@123
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - todolist-network
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P SuaSenha@123 -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  # Backend Spring Boot
+  backend:
+    build: ./backend
+    container_name: todolist-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://sqlserver:1433;databaseName=todolist_db;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=SuaSenha@123
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - todolist-network
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/api/tarefas || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Frontend Angular
+  frontend:
+    build: ./frontend
+    container_name: todolist-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - todolist-network
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  sqlserver-data:
+    driver: local
+
+networks:
+  todolist-network:
+    driver: bridge
+
