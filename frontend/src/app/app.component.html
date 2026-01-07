@@ -1,0 +1,241 @@
+<div class="container-fluid px-0">
+  <!-- Header com gradiente -->
+  <header class="header">
+    <div class="container">
+      <div class="text-center">
+        <i class="bi bi-kanban display-1 mb-3 d-block"></i>
+        <h1 class="display-4 fw-bold mb-3">{{ title }}</h1>
+        <p class="lead subtitle mb-0">Desafio Técnico Stefanini - Full Stack Java + Angular</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="container py-4">
+    <!-- Toasts Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+      @if (mensagemSucesso()) {
+        <div class="toast show align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">
+              <i class="bi bi-check-circle-fill me-2"></i>
+              {{ mensagemSucesso() }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="limparMensagens()" aria-label="Close"></button>
+          </div>
+        </div>
+      }
+      @if (mensagemErro()) {
+        <div class="toast show align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              {{ mensagemErro() }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="limparMensagens()" aria-label="Close"></button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Formulário com Bootstrap Form Controls -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <h2 class="h4 mb-0">
+          <i class="bi bi-{{ modoEdicao() ? 'pencil-square' : 'plus-circle' }} me-2"></i>
+          {{ modoEdicao() ? 'Editar Tarefa' : 'Nova Tarefa' }}
+        </h2>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="modoEdicao() ? atualizarTarefa() : criarTarefa()">
+          <div class="row g-3">
+            <!-- Campo Título -->
+            <div class="col-md-12">
+              <label for="titulo" class="form-label fw-semibold">
+                <i class="bi bi-text-left me-1"></i>Título <span class="text-danger">*</span>
+              </label>
+              @if (!modoEdicao()) {
+                <input type="text" id="titulo" [(ngModel)]="novaTarefa.titulo" name="titulo"
+                  class="form-control form-control-lg" placeholder="Digite o título da tarefa"
+                  required minlength="3" maxlength="100">
+              } @else {
+                <input type="text" id="titulo" [(ngModel)]="tarefaEditando()!.titulo" name="titulo"
+                  class="form-control form-control-lg" placeholder="Digite o título da tarefa"
+                  required minlength="3" maxlength="100">
+              }
+              <div class="form-text">Mínimo de 3 caracteres</div>
+            </div>
+
+            <!-- Campo Descrição -->
+            <div class="col-md-12">
+              <label for="descricao" class="form-label fw-semibold">
+                <i class="bi bi-text-paragraph me-1"></i>Descrição
+              </label>
+              @if (!modoEdicao()) {
+                <textarea id="descricao" [(ngModel)]="novaTarefa.descricao" name="descricao"
+                  class="form-control" rows="4" placeholder="Digite a descrição da tarefa (opcional)"
+                  maxlength="500"></textarea>
+              } @else {
+                <textarea id="descricao" [(ngModel)]="tarefaEditando()!.descricao" name="descricao"
+                  class="form-control" rows="4" placeholder="Digite a descrição da tarefa (opcional)"
+                  maxlength="500"></textarea>
+              }
+              <div class="form-text">Máximo de 500 caracteres</div>
+            </div>
+
+            <!-- Campo Status -->
+            <div class="col-md-12">
+              <label for="status" class="form-label fw-semibold">
+                <i class="bi bi-flag-fill me-1"></i>Status
+              </label>
+              @if (!modoEdicao()) {
+                <select id="status" [(ngModel)]="novaTarefa.status" name="status" class="form-select form-select-lg">
+                  @for (status of statusOptions; track status) {
+                    <option [value]="status">{{ getStatusTexto(status) }}</option>
+                  }
+                </select>
+              } @else {
+                <select id="status" [(ngModel)]="tarefaEditando()!.status" name="status" class="form-select form-select-lg">
+                  @for (status of statusOptions; track status) {
+                    <option [value]="status">{{ getStatusTexto(status) }}</option>
+                  }
+                </select>
+              }
+            </div>
+
+            <!-- Botões de Ação -->
+            <div class="col-12">
+              <div class="d-flex gap-2 justify-content-end">
+                @if (modoEdicao()) {
+                  <button type="button" class="btn btn-secondary btn-lg" (click)="cancelarEdicao()">
+                    <i class="bi bi-x-circle me-2"></i>Cancelar
+                  </button>
+                }
+                <button type="submit" class="btn btn-primary btn-lg">
+                  <i class="bi bi-{{ modoEdicao() ? 'check-circle' : 'plus-circle' }} me-2"></i>
+                  {{ modoEdicao() ? 'Atualizar' : 'Criar' }} Tarefa
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Filtro e Estatísticas -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-8">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="row align-items-center g-3">
+              <div class="col-auto">
+                <label for="filtro" class="col-form-label fw-semibold mb-0">
+                  <i class="bi bi-funnel-fill me-2"></i>Filtrar por Status:
+                </label>
+              </div>
+              <div class="col">
+                <select id="filtro" [(ngModel)]="filtroStatus" (ngModelChange)="carregarTarefas()" class="form-select form-select-lg">
+                  <option value="TODAS">📋 Todas as Tarefas</option>
+                  @for (status of statusOptions; track status) {
+                    <option [value]="status">{{ getStatusTexto(status) }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm h-100 bg-primary text-white">
+          <div class="card-body text-center d-flex flex-column justify-content-center">
+            <h6 class="mb-2 opacity-75">Total de Tarefas</h6>
+            <div class="display-4 fw-bold">{{ tarefas().length }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de Tarefas -->
+    <div class="tasks-container">
+      <div class="mb-4">
+        <h2 class="h3 mb-1">
+          <i class="bi bi-list-check me-2 text-primary"></i>Minhas Tarefas
+        </h2>
+        <p class="text-muted mb-0">Gerencie suas tarefas de forma simples e eficiente</p>
+      </div>
+
+      @if (tarefas().length === 0) {
+        <div class="card shadow-sm">
+          <div class="card-body text-center py-5">
+            <i class="bi bi-inbox display-1 text-primary opacity-25 mb-4 d-block"></i>
+            <h3 class="h4 text-muted mb-3">Nenhuma tarefa encontrada</h3>
+            <p class="text-muted mb-4">Comece criando sua primeira tarefa usando o formulário acima!</p>
+            <div class="d-inline-flex gap-2 text-muted small">
+              <span><i class="bi bi-plus-circle me-1"></i>Criar</span>
+              <span><i class="bi bi-pencil me-1"></i>Editar</span>
+              <span><i class="bi bi-trash3 me-1"></i>Excluir</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        @for (tarefa of tarefas(); track tarefa.id) {
+          <div class="col">
+            <div class="card h-100 shadow-sm border-0 task-card">
+              <div class="card-header bg-white border-bottom">
+                <div class="d-flex justify-content-between align-items-start">
+                  <h5 class="card-title mb-0 flex-grow-1 me-2">{{ tarefa.titulo }}</h5>
+                  <span class="badge {{ getStatusClass(tarefa.status) }}">
+                    {{ getStatusTexto(tarefa.status) }}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="card-body">
+                <p class="card-text text-muted mb-3" [class.fst-italic]="!tarefa.descricao">
+                  {{ tarefa.descricao || 'Sem descrição' }}
+                </p>
+
+                <div class="task-meta p-3 bg-light rounded">
+                  <small class="text-muted d-block mb-1">
+                    <i class="bi bi-calendar-plus text-primary me-1"></i>
+                    <strong>Criado:</strong> {{ tarefa.dataCriacao | date:'dd/MM/yyyy HH:mm' }}
+                  </small>
+                  @if (tarefa.dataAtualizacao) {
+                    <small class="text-muted d-block">
+                      <i class="bi bi-calendar-check text-success me-1"></i>
+                      <strong>Atualizado:</strong> {{ tarefa.dataAtualizacao | date:'dd/MM/yyyy HH:mm' }}
+                    </small>
+                  }
+                </div>
+              </div>
+
+              <div class="card-footer bg-white border-top-0">
+                <div class="btn-group w-100" role="group">
+                  <button type="button" class="btn btn-outline-info" (click)="editarTarefa(tarefa)">
+                    <i class="bi bi-pencil-square me-1"></i> Editar
+                  </button>
+                  <button type="button" class="btn btn-outline-danger" (click)="deletarTarefa(tarefa.id!)">
+                    <i class="bi bi-trash3 me-1"></i> Excluir
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white text-center py-4 mt-5">
+    <div class="container">
+      <p class="mb-0">
+        <i class="bi bi-c-circle me-1"></i>
+        2026 Stefanini Challenge - Desenvolvido com 
+        <i class="bi bi-heart-fill text-danger mx-1"></i>
+        usando Spring Boot e Angular 19
+      </p>
+    </div>
+  </footer>
+</div>
