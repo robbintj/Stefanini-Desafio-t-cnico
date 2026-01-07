@@ -215,7 +215,6 @@ export class AppComponent implements OnInit {
   }
 
   /**
-  /**
    * Limpa todas as mensagens.
    */
   limparMensagens(): void {
